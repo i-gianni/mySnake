@@ -1,19 +1,20 @@
 #include "raylib.h"
 #include<iostream>
+#include<string>
 
 using namespace std;
 
 Color green {173, 204, 96, 255};
 Color darkGreen {43,51,24,255};
 
-int const cellSize{30};
-int const cellCount{25};
+int constexpr cellSize{30};
+int constexpr cellCount{25};
 
 class Food
 {
     public:
 
-    Vector2 position = {5,6};
+    Vector2 position = {rand() % cellCount, rand() % cellCount};
 
     void Draw()
     {
@@ -25,15 +26,17 @@ class Food
 
 int main()
 {
-    int windowWidth{cellCount*cellSize};
-    int windowHeight{cellCount*cellSize};
-    //char const windowTitle{'Retro Snake'};
+    srand(time(0));
+
+    constexpr int windowWidth{cellCount*cellSize};
+    constexpr int windowHeight{cellCount*cellSize};
+    const char *windowTitle{"Retro Snake"};
 
     int const FPS {60};
 
     cout << "Starting the game" << endl;
-    
-    InitWindow(windowWidth,windowHeight,"Retro Snake");
+
+    InitWindow(windowWidth,windowHeight,windowTitle);
 
     SetTargetFPS(FPS);
 
@@ -44,7 +47,7 @@ int main()
         BeginDrawing();
 
         ClearBackground(green);
-        
+
         food.Draw();
 
         EndDrawing();
