@@ -1,7 +1,9 @@
 #include "raylib.h"
+#include "raymath.h"
 #include <iostream>
 #include <string>
 #include <deque>
+#include <filesystem>
 
 using namespace std;
 
@@ -11,11 +13,35 @@ Color darkGreen {43,51,24,255};
 int const cellSize{30};
 int const cellCount{25};
 
+double lastUpdateTime {0.};
+
+void pwd()
+{
+    // finding and printing the current working directory.
+    cout << "Current path is " << filesystem::current_path()
+         << endl;
+    return;
+}
+
+bool eventTriggered(double interval)
+{
+    double currentTime = GetTime();
+    if (currentTime - lastUpdateTime >= interval)
+    {
+        lastUpdateTime = currentTime;
+        return true;
+    }
+    return false;
+
+}
+
+
 class Snake
 {
 public:
 
     deque<Vector2> body = {Vector2{6,9},Vector2{5,9},Vector2{4,9}};
+    Vector2 direction {1,0};
 
     void Draw()
     {
@@ -27,8 +53,13 @@ public:
             DrawRectangleRounded (segment, 0.5, 6, darkGreen);
         }
     }
-};
 
+    void Update()
+    {
+        body.pop_back();
+        body.push_front(Vector2Add(body[0],direction));
+    }
+};
 
 class Food
 {
@@ -39,8 +70,9 @@ class Food
 
     Food()
     {
-        Image image = LoadImage("/home/ivang/repos/mySnake/graphics/baby.jpg");
+        Image image = LoadImage("../graphics/baby.jpg");
         texture = LoadTextureFromImage(image);
+        //texture = LoadTexture("../graphics/baby.jpg");
         UnloadImage(image);
         position = GenerateRandomPos();
     }
@@ -52,7 +84,8 @@ class Food
 
     void Draw()
     {
-        DrawTexture(texture, position.x * cellSize, position.y * cellSize, WHITE);
+        //DrawTexture(texture, position.x * cellSize, position.y * cellSize, WHITE);
+        DrawRectangle(position.x * cellSize, position.y * cellSize, cellSize, cellSize, darkGreen);
     }
 
     Vector2 GenerateRandomPos()
@@ -64,6 +97,32 @@ class Food
     }
 };
 
+class Game
+{
+public:
+
+    Snake snake = Snake();
+    Food food = Food();
+
+    void Draw()
+    {
+        snake.Draw();
+        food.Draw();
+    }
+
+    void Update()
+    {
+        snake.Update();
+    }
+
+    void SnakeTurn()
+    {
+        if(IsKeyPressed(KEY_UP) && snake.direction.y != 1){snake.direction = {0, -1};}
+        if(IsKeyPressed(KEY_DOWN) && snake.direction.y != -1){snake.direction = {0, 1};}
+        if(IsKeyPressed(KEY_LEFT) && snake.direction.x != 1){snake.direction = {-1, 0};}
+        if(IsKeyPressed(KEY_RIGHT) && snake.direction.x != -1){snake.direction = {1, 0};}
+    }
+};
 
 int main()
 {
@@ -73,23 +132,27 @@ int main()
 
     int const FPS {60};
 
-    cout << "Starting the game" << endl;
-
     InitWindow(windowWidth,windowHeight,windowTitle);
     SetTargetFPS(FPS);
 
-    Food food = Food();
-    Snake snake = Snake();
+    Game game = Game();
 
     while(WindowShouldClose() == false)
     {
         BeginDrawing();
 
+
+        if(eventTriggered(0.2))
+        {
+            game.Update();
+        }
+
+        game.SnakeTurn();
+
+        
         ClearBackground(green);
 
-        food.Draw();
-        snake.Draw();
-
+        game.Draw();
 
         EndDrawing();
 
