@@ -35,6 +35,14 @@ bool eventTriggered(double interval)
 
 }
 
+bool ElementInDeque(Vector2 element, deque<Vector2> deque)
+{
+    for (unsigned int i = 0; i < deque.size(); i++)
+    {
+        if (Vector2Equals(deque[i],element)){return true;}
+    }
+    return false;
+}
 
 class Snake
 {
@@ -68,13 +76,13 @@ class Food
     Texture2D texture;
     Vector2 position;
 
-    Food()
+    Food(deque<Vector2> snakeBody)
     {
         Image image = LoadImage("../graphics/baby.jpg");
         texture = LoadTextureFromImage(image);
         //texture = LoadTexture("../graphics/baby.jpg");
         UnloadImage(image);
-        position = GenerateRandomPos();
+        position = GenerateRandomPos(snakeBody);
     }
 
     ~Food()
@@ -88,11 +96,21 @@ class Food
         DrawRectangle(position.x * cellSize, position.y * cellSize, cellSize, cellSize, darkGreen);
     }
 
-    Vector2 GenerateRandomPos()
+    Vector2 GenerateRandomCell()
     {
         float x = GetRandomValue(0, cellCount -1);
         float y = GetRandomValue(0, cellCount -1);
-        return Vector2{x,y};
+        return Vector2 {x,y};
+    }
+
+    Vector2 GenerateRandomPos(deque<Vector2> snakeBody)
+    {
+        Vector2 position = GenerateRandomCell();
+        if (ElementInDeque(position,snakeBody))
+        {
+            position = GenerateRandomCell();
+        }
+        return position;
 
     }
 };
@@ -102,7 +120,7 @@ class Game
 public:
 
     Snake snake = Snake();
-    Food food = Food();
+    Food food = Food(snake.body);
 
     void Draw()
     {
@@ -113,6 +131,7 @@ public:
     void Update()
     {
         snake.Update();
+        CheckCollisionWithFood();
     }
 
     void SnakeTurn()
@@ -121,6 +140,14 @@ public:
         if(IsKeyPressed(KEY_DOWN) && snake.direction.y != -1){snake.direction = {0, 1};}
         if(IsKeyPressed(KEY_LEFT) && snake.direction.x != 1){snake.direction = {-1, 0};}
         if(IsKeyPressed(KEY_RIGHT) && snake.direction.x != -1){snake.direction = {1, 0};}
+    }
+
+    void CheckCollisionWithFood()
+    {
+        if (Vector2Equals(food.position,snake.body[0]))
+        {
+            food.position = food.GenerateRandomPos(snake.body);
+        }
     }
 };
 
