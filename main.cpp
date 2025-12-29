@@ -8,7 +8,12 @@
 using namespace std;
 
 Color green {173, 204, 96, 255};
+Color boh1 {204, 96, 173, 255};
+Color boh2 {96, 173, 204, 255};
 Color darkGreen {43,51,24,255};
+
+deque<Color> Colors {green,boh1,boh2};
+
 int const offset {75};
 
 int const cellSize{30};
@@ -141,6 +146,7 @@ public:
     int score {0};
     Sound eatSound;
     Sound wallSound;
+    Color screenColor {Colors[0]};
 
     Game()
     {
@@ -205,6 +211,7 @@ public:
             snake.speed ++;
             score ++;
             PlaySound(eatSound);
+            screenColor = Colors[score % Colors.size()];
         }
     }
 
@@ -238,6 +245,7 @@ public:
         running = false;
         score = 0;
         PlaySound(wallSound);
+        screenColor = Colors[0];
     }
 };
 
@@ -248,6 +256,8 @@ int main()
     const char *windowTitle{"Retro Snake"};
 
     int const FPS {60};
+
+    int i {0};
 
     InitWindow(windowWidth,windowHeight,windowTitle);
     SetTargetFPS(FPS);
@@ -266,8 +276,7 @@ int main()
 
         game.SnakeTurn();
 
-        
-        ClearBackground(green);
+        ClearBackground(game.screenColor);
         DrawRectangleLinesEx(Rectangle{(float) offset-5, (float) offset-5, (float) cellCount*cellSize+10, (float) cellCount*cellSize+10}, 5, darkGreen);
         DrawText("Retro Snake", offset-5, 20, 40, darkGreen);
         DrawText(TextFormat("%i",game.score), offset-5, offset + cellCount*cellSize+10, 40, darkGreen);
