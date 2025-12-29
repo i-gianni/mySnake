@@ -9,6 +9,7 @@ using namespace std;
 
 Color green {173, 204, 96, 255};
 Color darkGreen {43,51,24,255};
+int const offset {75};
 
 int const cellSize{30};
 int const cellCount{25};
@@ -59,8 +60,8 @@ public:
         {
             float x = body[i].x;
             float y = body[i].y;
-            Rectangle segment = Rectangle{x * cellSize, y * cellSize, cellSize, cellSize};
-            DrawRectangleRounded (segment, 0.5, 6, darkGreen);
+            Rectangle segment = Rectangle{offset + x * cellSize, offset + y * cellSize, cellSize, cellSize};
+            DrawRectangleRounded(segment, 0.5, 6, darkGreen);
         }
     }
 
@@ -96,7 +97,6 @@ class Food
     {
         Image image = LoadImage("../graphics/baby.jpg");
         texture = LoadTextureFromImage(image);
-        //texture = LoadTexture("../graphics/baby.jpg");
         UnloadImage(image);
         position = GenerateRandomPos(snakeBody);
     }
@@ -109,7 +109,7 @@ class Food
     void Draw()
     {
         //DrawTexture(texture, position.x * cellSize, position.y * cellSize, WHITE);
-        DrawRectangle(position.x * cellSize, position.y * cellSize, cellSize, cellSize, darkGreen);
+        DrawRectangle(offset + position.x * cellSize, offset + position.y * cellSize, cellSize, cellSize, darkGreen);
     }
 
     Vector2 GenerateRandomCell()
@@ -138,6 +138,23 @@ public:
     Snake snake = Snake();
     Food food = Food(snake.body);
     bool running = true;
+    int score {0};
+    Sound eatSound;
+    Sound wallSound;
+
+    Game()
+    {
+        InitAudioDevice();
+        eatSound = LoadSound("../sounds/gnom.mp3");
+        wallSound = LoadSound("../sounds/bonk.mp3");
+    }
+
+    ~Game()
+    {
+        UnloadSound(eatSound);
+        UnloadSound(wallSound);
+        CloseAudioDevice();
+    }
 
     void Draw()
     {
@@ -185,7 +202,9 @@ public:
         {
             food.position = food.GenerateRandomPos(snake.body);
             snake.addSegment = true;
-            snake.speed += 1;
+            snake.speed ++;
+            score ++;
+            PlaySound(eatSound);
         }
     }
 
@@ -217,14 +236,15 @@ public:
         snake.Reset();
         food.position = food.GenerateRandomPos(snake.body);
         running = false;
-
+        score = 0;
+        PlaySound(wallSound);
     }
 };
 
 int main()
 {
-    constexpr int windowWidth{cellCount*cellSize};
-    constexpr int windowHeight{cellCount*cellSize};
+    constexpr int windowWidth{2*offset + cellCount*cellSize};
+    constexpr int windowHeight{2*offset + cellCount*cellSize};
     const char *windowTitle{"Retro Snake"};
 
     int const FPS {60};
@@ -248,7 +268,9 @@ int main()
 
         
         ClearBackground(green);
-
+        DrawRectangleLinesEx(Rectangle{(float) offset-5, (float) offset-5, (float) cellCount*cellSize+10, (float) cellCount*cellSize+10}, 5, darkGreen);
+        DrawText("Retro Snake", offset-5, 20, 40, darkGreen);
+        DrawText(TextFormat("%i",game.score), offset-5, offset + cellCount*cellSize+10, 40, darkGreen);
         game.Draw();
 
         EndDrawing();
